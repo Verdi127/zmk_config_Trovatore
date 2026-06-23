@@ -11,8 +11,8 @@ LOG_MODULE_REGISTER(trovatore_dual_oled, LOG_LEVEL_INF);
 #define OLED_1_NODE DT_NODELABEL(oled_1)
 #define OLED_2_NODE DT_NODELABEL(oled_2)
 
-#define OLED_WIDTH 128
-#define OLED_HEIGHT 32
+#define OLED_WIDTH DT_PROP(OLED_1_NODE, width)
+#define OLED_HEIGHT DT_PROP(OLED_1_NODE, height)
 #define OLED_PAGES (OLED_HEIGHT / 8)
 #define OLED_FB_SIZE (OLED_WIDTH * OLED_PAGES)
 #define OLED_UPDATE_INTERVAL_MS 200
@@ -21,9 +21,7 @@ LOG_MODULE_REGISTER(trovatore_dual_oled, LOG_LEVEL_INF);
 #error "oled_1 node is not defined or disabled"
 #endif
 
-#if !DT_NODE_HAS_STATUS(OLED_2_NODE, okay)
-#error "oled_2 node is not defined or disabled"
-#endif
+#define HAS_OLED_2 DT_NODE_HAS_STATUS(OLED_2_NODE, okay)
 
 static struct k_work_delayable oled_2_work;
 static const struct device *oled_1_dev;
@@ -220,14 +218,14 @@ static void render_oled_2(void)
     struct display_buffer_descriptor desc1 = {
         .buf_size = sizeof(oled_1_fb),
         .width = OLED_WIDTH,
-        .height = OLED_PAGES,
+        .height = OLED_HEIGHT,
         .pitch = OLED_WIDTH,
     };
 
     struct display_buffer_descriptor desc2 = {
         .buf_size = sizeof(oled_2_fb),
         .width = OLED_WIDTH,
-        .height = OLED_PAGES,
+        .height = OLED_HEIGHT,
         .pitch = OLED_WIDTH,
     };
 
@@ -261,15 +259,21 @@ static void oled_2_work_handler(struct k_work *work)
 
 static int trovatore_dual_oled_init(void)
 {
+    int rc;
+
     oled_1_dev = DEVICE_DT_GET(OLED_1_NODE);
+#if HAS_OLED_2
     oled_2_dev = DEVICE_DT_GET(OLED_2_NODE);
+#else
+    oled_2_dev = NULL;
+#endif
 
     if (!device_is_ready(oled_1_dev)) {
         LOG_WRN("oled_1 is not ready");
         oled_1_dev = NULL;
     }
 
-    if (!device_is_ready(oled_2_dev)) {
+    if ((oled_2_dev != NULL) && !device_is_ready(oled_2_dev)) {
         LOG_WRN("oled_2 is not ready");
         oled_2_dev = NULL;
     }
@@ -280,9 +284,17 @@ static int trovatore_dual_oled_init(void)
     }
 
     if (oled_1_dev != NULL) {
+        rc = display_set_pixel_format(oled_1_dev, PIXEL_FORMAT_MONO10);
+        if (rc != 0) {
+            LOG_WRN("oled_1 pixel format set failed: %d", rc);
+        }
         (void)display_blanking_off(oled_1_dev);
     }
     if (oled_2_dev != NULL) {
+        rc = display_set_pixel_format(oled_2_dev, PIXEL_FORMAT_MONO10);
+        if (rc != 0) {
+            LOG_WRN("oled_2 pixel format set failed: %d", rc);
+        }
         (void)display_blanking_off(oled_2_dev);
     }
 

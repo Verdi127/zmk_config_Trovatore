@@ -88,12 +88,10 @@
         reg = <0x3c>;
         width = <128>;
         height = <32>;
-        segment-offset = <2>;
+        segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <31>;
-        com-invdir;
-        segment-remap;
         prechargep = <0x22>;
         status = "okay";
     };
@@ -118,6 +116,6 @@
         com-invdir;
         segment-remap;
         prechargep = <0x22>;
-        status = "okay";
+        status = "disabled";
     };
 };
