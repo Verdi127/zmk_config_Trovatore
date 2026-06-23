@@ -30,20 +30,10 @@ static bool phase;
 
 static void fill_oled_2_pattern(uint8_t *fb, bool phase_on)
 {
-    /* Simple test pattern: left half 'a' (vertical lines), right half 'b' (all on) */
+    /* Simple test pattern: all pixels on ('b' pattern) */
     for (size_t page = 0; page < (OLED_HEIGHT / 8); page++) {
         for (size_t x = 0; x < OLED_WIDTH; x++) {
-            uint8_t value;
-            
-            if (x < OLED_WIDTH / 2) {
-                /* Left half: 'a' - vertical stripe pattern */
-                value = (x % 4 < 2) ? 0xFF : 0x00;
-            } else {
-                /* Right half: 'b' - all pixels on */
-                value = 0xFF;
-            }
-            
-            fb[(page * OLED_WIDTH) + x] = value;
+            fb[(page * OLED_WIDTH) + x] = 0xFF;  /* All pixels on */
         }
     }
 }
