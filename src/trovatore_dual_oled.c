@@ -13,7 +13,8 @@ LOG_MODULE_REGISTER(trovatore_dual_oled, LOG_LEVEL_INF);
 
 #define OLED_WIDTH 128
 #define OLED_HEIGHT 32
-#define OLED_FB_SIZE (OLED_WIDTH * OLED_HEIGHT / 8)
+#define OLED_PAGES (OLED_HEIGHT / 8)
+#define OLED_FB_SIZE (OLED_WIDTH * OLED_PAGES)
 #define OLED_UPDATE_INTERVAL_MS 200
 
 #if !DT_NODE_HAS_STATUS(OLED_1_NODE, okay)
@@ -219,14 +220,14 @@ static void render_oled_2(void)
     struct display_buffer_descriptor desc1 = {
         .buf_size = sizeof(oled_1_fb),
         .width = OLED_WIDTH,
-        .height = OLED_HEIGHT,
+        .height = OLED_PAGES,
         .pitch = OLED_WIDTH,
     };
 
     struct display_buffer_descriptor desc2 = {
         .buf_size = sizeof(oled_2_fb),
         .width = OLED_WIDTH,
-        .height = OLED_HEIGHT,
+        .height = OLED_PAGES,
         .pitch = OLED_WIDTH,
     };
 
