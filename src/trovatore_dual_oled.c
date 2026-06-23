@@ -30,10 +30,38 @@ static bool phase;
 
 static void fill_oled_2_pattern(uint8_t *fb, bool phase_on)
 {
-    /* Simple test pattern: all pixels on ('b' pattern) */
+    /* Draw large letter 'B' for display verification */
     for (size_t page = 0; page < (OLED_HEIGHT / 8); page++) {
         for (size_t x = 0; x < OLED_WIDTH; x++) {
-            fb[(page * OLED_WIDTH) + x] = 0xFF;  /* All pixels on */
+            uint8_t value = 0x00;
+            
+            /* Draw 'B' shape (roughly 30px wide, centered) */
+            if (x >= 20 && x < 50) {
+                /* Left and right edges */
+                if (x == 20 || x == 49) {
+                    value = 0xFF;  /* Full column */
+                }
+                /* Top edge (page 0) */
+                else if (page == 0) {
+                    value = 0xFF;
+                }
+                /* Bottom edge (page 3) */
+                else if (page == 3) {
+                    value = 0xFF;
+                }
+                /* Middle divider (page 2) */
+                else if (page == 2) {
+                    value = 0xFF;
+                }
+                /* Right side bumps for 'B' shape */
+                else if (x >= 40 && x < 49) {
+                    if ((page == 0 || page == 1) || (page == 2 || page == 3)) {
+                        value = 0xFF;
+                    }
+                }
+            }
+            
+            fb[(page * OLED_WIDTH) + x] = value;
         }
     }
 }
