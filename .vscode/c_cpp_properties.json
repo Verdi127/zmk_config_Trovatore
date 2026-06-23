@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "ZMK",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/zephyr/include",
+                "${workspaceFolder}/build/zephyr/include",
+                "/opt/zephyr-sdk-0.16.*/arm-zephyr-eabi/arm-zephyr-eabi/include",
+                "${env:ZEPHYR_BASE}/include",
+                "${env:GNUARMEMB_TOOLCHAIN_PATH}/arm-none-eabi/include"
+            ],
+            "defines": [
+                "CONFIG_TROVATORE_DUAL_OLED_APP=1"
+            ],
+            "compilerPath": "${env:GNUARMEMB_TOOLCHAIN_PATH}/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}

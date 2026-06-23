@@ -1,0 +1,8 @@
+menu "Trovatore Custom"
+
+config TROVATORE_DUAL_OLED_APP
+    bool "Enable Trovatore dual OLED support"
+    default y
+    depends on ZMK_DISPLAY
+
+endmenu
