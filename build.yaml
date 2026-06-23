@@ -9,4 +9,4 @@
 ---
 include:
   - board: nice_nano_v2
-    shield: Trovatore nice_oled
+    shield: Trovatore

@@ -232,8 +232,12 @@ static void render_oled_2(void)
 
     fill_oled_1_display(oled_1_fb);
     fill_oled_2_display(oled_2_fb);
-    (void)display_write(oled_1_dev, 0, 0, &desc1, oled_1_fb);
-    (void)display_write(oled_2_dev, 0, 0, &desc2, oled_2_fb);
+    if (oled_1_dev != NULL) {
+        (void)display_write(oled_1_dev, 0, 0, &desc1, oled_1_fb);
+    }
+    if (oled_2_dev != NULL) {
+        (void)display_write(oled_2_dev, 0, 0, &desc2, oled_2_fb);
+    }
 
     frame_idx++;
     if ((frame_idx % 10U) == 0U) {
@@ -261,23 +265,32 @@ static int trovatore_dual_oled_init(void)
 
     if (!device_is_ready(oled_1_dev)) {
         LOG_WRN("oled_1 is not ready");
-        return 0;
+        oled_1_dev = NULL;
     }
 
     if (!device_is_ready(oled_2_dev)) {
         LOG_WRN("oled_2 is not ready");
+        oled_2_dev = NULL;
+    }
+
+    if ((oled_1_dev == NULL) && (oled_2_dev == NULL)) {
+        LOG_WRN("No OLED device is ready");
         return 0;
     }
 
-    (void)display_blanking_off(oled_1_dev);
-    (void)display_blanking_off(oled_2_dev);
+    if (oled_1_dev != NULL) {
+        (void)display_blanking_off(oled_1_dev);
+    }
+    if (oled_2_dev != NULL) {
+        (void)display_blanking_off(oled_2_dev);
+    }
 
     k_work_init_delayable(&oled_2_work, oled_2_work_handler);
     k_work_schedule(&oled_2_work, K_NO_WAIT);
 
-    LOG_INF("Trovatore dual OLED enabled:");
-    LOG_INF("  oled_1 (top)    = battery + bongo cat");
-    LOG_INF("  oled_2 (bottom) = conn + layer");
+    LOG_INF("Trovatore dual OLED enabled");
+    LOG_INF("  oled_1 ready = %d", oled_1_dev != NULL);
+    LOG_INF("  oled_2 ready = %d", oled_2_dev != NULL);
     return 0;
 }
 
