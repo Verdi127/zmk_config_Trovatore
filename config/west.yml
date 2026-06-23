@@ -6,6 +6,8 @@ manifest:
       url-base: https://github.com/zmkfirmware 
     - name: englmaxi
       url-base: https://github.com/englmaxi
+    - name: mctechnology17
+      url-base: https://github.com/mctechnology17
 
     # Additional modules containing boards/shields/custom code can be listed here as well
     # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
@@ -15,6 +17,9 @@ manifest:
       import: app/west.yml
     - name: zmk-dongle-display
       remote: englmaxi
+      revision: main
+    - name: zmk-nice-oled
+      remote: mctechnology17
       revision: main
   self:
     path: config
