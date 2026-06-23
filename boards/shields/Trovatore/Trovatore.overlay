@@ -52,10 +52,26 @@
         };
     };
 
+    i2c0_sleep: i2c0_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
+            low-power-enable;
+        };
+    };
+
     i2c1_default: i2c1_default {
         group1 {
             psels = <NRF_PSEL(TWIM_SDA, 0, 22)>,
                     <NRF_PSEL(TWIM_SCL, 0, 24)>;
+        };
+    };
+
+    i2c1_sleep: i2c1_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 22)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 24)>;
+            low-power-enable;
         };
     };
 };
@@ -64,7 +80,8 @@
     compatible = "nordic,nrf-twim";
     status = "okay";
     pinctrl-0 = <&i2c0_default>;
-    pinctrl-names = "default";
+    pinctrl-1 = <&i2c0_sleep>;
+    pinctrl-names = "default", "sleep";
 
     oled_1: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
@@ -86,7 +103,8 @@
     compatible = "nordic,nrf-twim";
     status = "okay";
     pinctrl-0 = <&i2c1_default>;
-    pinctrl-names = "default";
+    pinctrl-1 = <&i2c1_sleep>;
+    pinctrl-names = "default", "sleep";
 
     oled_2: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
