@@ -218,16 +218,14 @@ static void render_oled_2(void)
     struct display_buffer_descriptor desc1 = {
         .buf_size = sizeof(oled_1_fb),
         .width = OLED_WIDTH,
-        /* SSD1306 uses 8-pixel vertical pages for framebuffer writes. */
-        .height = OLED_PAGES,
+        .height = OLED_HEIGHT,
         .pitch = OLED_WIDTH,
     };
 
     struct display_buffer_descriptor desc2 = {
         .buf_size = sizeof(oled_2_fb),
         .width = OLED_WIDTH,
-        /* SSD1306 uses 8-pixel vertical pages for framebuffer writes. */
-        .height = OLED_PAGES,
+        .height = OLED_HEIGHT,
         .pitch = OLED_WIDTH,
     };
 
