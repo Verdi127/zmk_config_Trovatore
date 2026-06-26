@@ -183,32 +183,23 @@ static void fill_oled_1_display(uint8_t *fb)
 {
     clear_fb(fb);
 
-    draw_hline(fb, 0, OLED_WIDTH - 1, 9, true);
-    draw_text(fb, 2, 1, "BAT");
-    draw_battery_icon(fb, 26, 1, demo_battery);
-    draw_text(fb, 50, 1, "BONGO");
-
-    draw_bongo_cat(fb, 30, 9, frame_idx);
+    draw_text(fb, 2, 2, "BAT");
+    draw_battery_icon(fb, 26, 2, demo_battery);
 }
 
 static void fill_oled_2_display(uint8_t *fb)
 {
     clear_fb(fb);
 
-    draw_hline(fb, 0, OLED_WIDTH - 1, 9, true);
-    draw_text(fb, 2, 1, "CONN:");
-    draw_text(fb, 38, 1, link_up ? "ON" : "OFF");
-
-    draw_text(fb, 2, 14, "LAYER:");
     switch (layer_idx % 3) {
     case 0:
-        draw_text(fb, 44, 14, "BASE");
+        draw_text(fb, 2, 2, "BASE");
         break;
     case 1:
-        draw_text(fb, 44, 14, "SYM");
+        draw_text(fb, 2, 2, "SYM");
         break;
     default:
-        draw_text(fb, 44, 14, "NUM");
+        draw_text(fb, 2, 2, "NUM");
         break;
     }
 }
