@@ -32,7 +32,7 @@ static uint8_t frame_idx;
 static uint8_t demo_battery = 100;
 static bool link_up = true;
 static uint8_t layer_idx;
-ㅓstatic bool oled_mono10 = true;
+static bool oled_mono10 = true;
 static bool oled_msb_first = false;
 static bool oled_vtiled = true;
 static bool oled_write_error_logged;

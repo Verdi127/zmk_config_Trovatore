@@ -97,5 +97,23 @@
 };
 
 &i2c1 {
-    status = "disabled";
+    compatible = "nordic,nrf-twim";
+    status = "okay";
+    clock-frequency = <400000>;
+    pinctrl-0 = <&i2c1_default>;
+    pinctrl-1 = <&i2c1_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    oled_2: ssd1306@3c {
+        compatible = "solomon,ssd1306fb";
+        reg = <0x3c>;
+        width = <128>;
+        height = <32>;
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <31>;
+        prechargep = <0x22>;
+        status = "okay";
+    };
 };
