@@ -79,6 +79,7 @@
 &i2c0 {
     compatible = "nordic,nrf-twim";
     status = "okay";
+    clock-frequency = <100000>;
     pinctrl-0 = <&i2c0_default>;
     pinctrl-1 = <&i2c0_sleep>;
     pinctrl-names = "default", "sleep";
@@ -100,6 +101,7 @@
 &i2c1 {
     compatible = "nordic,nrf-twim";
     status = "okay";
+    clock-frequency = <100000>;
     pinctrl-0 = <&i2c1_default>;
     pinctrl-1 = <&i2c1_sleep>;
     pinctrl-names = "default", "sleep";
@@ -116,6 +118,6 @@
         com-invdir;
         segment-remap;
         prechargep = <0x22>;
-        status = "disabled";
+        status = "okay";
     };
 };
