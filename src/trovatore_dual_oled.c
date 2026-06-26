@@ -32,6 +32,10 @@ static uint8_t frame_idx;
 static uint8_t demo_battery = 100;
 static bool link_up = true;
 static uint8_t layer_idx;
+ㅓstatic bool oled_mono10 = true;
+static bool oled_msb_first = false;
+static bool oled_vtiled = true;
+static bool oled_write_error_logged;
 
 /* Simple pixel drawing utilities */
 static void draw_pixel(uint8_t *fb, int x, int y, bool on)
@@ -39,14 +43,19 @@ static void draw_pixel(uint8_t *fb, int x, int y, bool on)
     if (x < 0 || x >= OLED_WIDTH || y < 0 || y >= OLED_HEIGHT) {
         return;
     }
-    
+
     int page = y / 8;
     int bit = y % 8;
-    
-    if (on) {
-        fb[(page * OLED_WIDTH) + x] |= (1 << bit);
+    if (oled_msb_first) {
+        bit = 7 - bit;
+    }
+
+    /* Keep black pixels as "on" regardless of MONO01/MONO10 selected format. */
+    bool pixel_is_one = oled_mono10 ? on : !on;
+    if (pixel_is_one) {
+        fb[(page * OLED_WIDTH) + x] |= (1u << bit);
     } else {
-        fb[(page * OLED_WIDTH) + x] &= ~(1 << bit);
+        fb[(page * OLED_WIDTH) + x] &= ~(1u << bit);
     }
 }
 
@@ -74,7 +83,7 @@ static void draw_rect(uint8_t *fb, int x, int y, int w, int h, bool on)
 
 static void clear_fb(uint8_t *fb)
 {
-    memset(fb, 0x00, OLED_FB_SIZE);
+    memset(fb, oled_mono10 ? 0x00 : 0xFF, OLED_FB_SIZE);
 }
 
 static void draw_battery_icon(uint8_t *fb, int x, int y, uint8_t percent)
@@ -206,6 +215,7 @@ static void fill_oled_2_display(uint8_t *fb)
 
 static void render_oled_2(void)
 {
+    int rc;
     struct display_buffer_descriptor desc1 = {
         .buf_size = sizeof(oled_1_fb),
         .width = OLED_WIDTH,
@@ -223,10 +233,18 @@ static void render_oled_2(void)
     fill_oled_1_display(oled_1_fb);
     fill_oled_2_display(oled_2_fb);
     if (oled_1_dev != NULL) {
-        (void)display_write(oled_1_dev, 0, 0, &desc1, oled_1_fb);
+        rc = display_write(oled_1_dev, 0, 0, &desc1, oled_1_fb);
+        if ((rc != 0) && !oled_write_error_logged) {
+            LOG_ERR("oled_1 write failed: %d", rc);
+            oled_write_error_logged = true;
+        }
     }
     if (oled_2_dev != NULL) {
-        (void)display_write(oled_2_dev, 0, 0, &desc2, oled_2_fb);
+        rc = display_write(oled_2_dev, 0, 0, &desc2, oled_2_fb);
+        if ((rc != 0) && !oled_write_error_logged) {
+            LOG_ERR("oled_2 write failed: %d", rc);
+            oled_write_error_logged = true;
+        }
     }
 
     frame_idx++;
@@ -251,6 +269,8 @@ static void oled_2_work_handler(struct k_work *work)
 static int trovatore_dual_oled_init(void)
 {
     int rc;
+    bool format_selected = false;
+    struct display_capabilities caps;
 
     oled_1_dev = DEVICE_DT_GET(OLED_1_NODE);
 #if HAS_OLED_2
@@ -275,14 +295,49 @@ static int trovatore_dual_oled_init(void)
     }
 
     if (oled_1_dev != NULL) {
-        rc = display_set_pixel_format(oled_1_dev, PIXEL_FORMAT_MONO10);
-        if (rc != 0) {
-            LOG_WRN("oled_1 pixel format set failed: %d", rc);
+        display_get_capabilities(oled_1_dev, &caps);
+        oled_msb_first = (caps.screen_info & SCREEN_INFO_MONO_MSB_FIRST) != 0;
+        oled_vtiled = (caps.screen_info & SCREEN_INFO_MONO_VTILED) != 0;
+
+        if ((caps.supported_pixel_formats & PIXEL_FORMAT_MONO10) != 0U) {
+            rc = display_set_pixel_format(oled_1_dev, PIXEL_FORMAT_MONO10);
+            if (rc == 0) {
+                oled_mono10 = true;
+                format_selected = true;
+            } else {
+                LOG_WRN("oled_1 MONO10 set failed: %d", rc);
+            }
         }
+
+        if (!format_selected && (caps.supported_pixel_formats & PIXEL_FORMAT_MONO01) != 0U) {
+            rc = display_set_pixel_format(oled_1_dev, PIXEL_FORMAT_MONO01);
+            if (rc == 0) {
+                oled_mono10 = false;
+                format_selected = true;
+            } else {
+                LOG_WRN("oled_1 MONO01 set failed: %d", rc);
+            }
+        }
+
+        if (!format_selected) {
+            if ((caps.current_pixel_format & PIXEL_FORMAT_MONO01) != 0U) {
+                oled_mono10 = false;
+            } else if ((caps.current_pixel_format & PIXEL_FORMAT_MONO10) != 0U) {
+                oled_mono10 = true;
+            }
+            LOG_WRN("oled_1 did not accept MONO10/MONO01; using current format");
+        }
+
+        if (!oled_vtiled) {
+            LOG_WRN("Display is not MONO_VTILED; current framebuffer layout may be incompatible");
+        }
+    }
+
+    if (oled_1_dev != NULL) {
         (void)display_blanking_off(oled_1_dev);
     }
     if (oled_2_dev != NULL) {
-        rc = display_set_pixel_format(oled_2_dev, PIXEL_FORMAT_MONO10);
+        rc = display_set_pixel_format(oled_2_dev, oled_mono10 ? PIXEL_FORMAT_MONO10 : PIXEL_FORMAT_MONO01);
         if (rc != 0) {
             LOG_WRN("oled_2 pixel format set failed: %d", rc);
         }
@@ -295,6 +350,9 @@ static int trovatore_dual_oled_init(void)
     LOG_INF("Trovatore dual OLED enabled");
     LOG_INF("  oled_1 ready = %d", oled_1_dev != NULL);
     LOG_INF("  oled_2 ready = %d", oled_2_dev != NULL);
+    LOG_INF("  mono10 = %d", oled_mono10);
+    LOG_INF("  msb_first = %d", oled_msb_first);
+    LOG_INF("  vtiled = %d", oled_vtiled);
     return 0;
 }
 
